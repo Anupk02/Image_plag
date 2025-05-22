@@ -1,1 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Advanced Image Plagiarism Checker</title>
+    <style>
+        :root {
+            --primary: #4361ee;
+            --primary-light: #6c84f4;
+            --danger: #ef233c;
+            --success: #2b9348;
+            --warning: #ff9e00;
+            --gray: #6c757d;
+            --gradient: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        }
+        .loader {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f3f3;
+    border-top: 4px solid var(--primary);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 999;
+}
 
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(255,255,255,0.8);
+    display: none;
+    z-index: 998;
+}
+
+        body { 
+            font-family: 'Inter', 'Segoe UI', system-ui, sans-serif; 
+            background: #f8f9fa; 
+            color: #212529; 
+            line-height: 1.6;
+        }
+        .container { 
+            max-width: 1200px; 
+            margin: 2rem auto; 
+            padding: 3rem; 
+            background: #fff; 
+            box-shadow: 0 1rem 3rem rgba(0,0,0,0.05); 
+            border-radius: 1rem; 
+        }
+        h1 { 
+            color: #2b2d42; 
+            font-weight: 800;
+            font-size: 2.5rem;
+            margin-bottom: 2rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        .form-container {
+            background: var(--gradient);
+            padding: 2rem;
+            border-radius: 0.75rem;
+            margin-bottom: 3rem;
+            box-shadow: 0 0.5rem 1.5rem rgba(67,97,238,0.2);
+        }
+        .custom-file-input {
+            display: flex;
+            gap: 1rem;
+        }
+        .custom-file-input input[type="file"] {
+            display: none;
+        }
+        .file-label {
+            background: rgba(255,255,255,0.15);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            border: 2px solid rgba(255,255,255,0.3);
+        }
+        .file-label:hover {
+            background: rgba(255,255,255,0.25);
+        }
+        .scan-btn {
+            background: #fff;
+            color: var(--primary);
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .scan-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(0,0,0,0.1);
+        }
+        .stats-card {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 2rem;
+            margin: 3rem 0;
+        }
+        .stat-box {
+            padding: 2rem;
+            background: #fff;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.05);
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s;
+        }
+        .stat-box:hover {
+            transform: translateY(-5px);
+        }
+        .stat-box::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: var(--primary);
+        }
+        .stat-box.danger::after { background: var(--danger); }
+        .stat-box.success::after { background: var(--success); }
+        .stat-icon {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+            opacity: 0.8;
+        }
+        .stat-value {
+            font-size: 2.75rem;
+            font-weight: 800;
+            margin: 0.5rem 0;
+            color: #2b2d42;
+        }
+        .stat-title {
+            color: var(--gray);
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .result-card {
+            margin: 2rem 0;
+            border: 1px solid #e9ecef;
+            border-radius: 1rem;
+            overflow: hidden;
+            transition: box-shadow 0.2s;
+        }
+        .result-card:hover {
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.08);
+        }
+        .image-preview {
+            position: relative;
+            background: #f8f9fa;
+            padding: 1rem;
+        }
+        .image-preview img {
+            width: 100%;
+            height: auto;
+            max-width: 600px;
+            margin: 0 auto;
+            display: block;
+            border-radius: 0.5rem;
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.1);
+        }
+        .plagiarism-badge {
+            position: absolute;
+            top: 1.5rem;
+            right: 1.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 2rem;
+            font-weight: 700;
+            font-size: 1rem;
+            background: var(--danger);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 0.25rem 0.5rem rgba(239,35,60,0.3);
+        }
+        .source-list {
+            padding: 1.5rem;
+            margin: 0;
+            background: #f8f9fa;
+        }
+        .source-item {
+            padding: 1rem;
+            background: white;
+            border-radius: 0.5rem;
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 0.125rem 0.25rem rgba(0,0,0,0.05);
+        }
+        .source-item a {
+            color: var(--primary);
+            text-decoration: none;
+            font-weight: 500;
+            flex-grow: 1;
+        }
+        .source-item a:hover {
+            text-decoration: underline;
+        }
+        .progress-container {
+            margin: 3rem 0;
+            background: #fff;
+            padding: 2rem;
+            border-radius: 1rem;
+            box-shadow: 0 0.5rem 1.5rem rgba(0,0,0,0.05);
+        }
+        .progress-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            color: var(--gray);
+        }
+        .progress-bar {
+            height: 1.25rem;
+            background: #e9ecef;
+            border-radius: 2rem;
+            overflow: hidden;
+            position: relative;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--gradient);
+            width: var(--score, 0%);
+            transition: width 0.5s ease;
+            border-radius: 2rem;
+        }
+        .no-plagiarism {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: #f8f9fa;
+            border-radius: 1rem;
+            margin: 2rem 0;
+        }
+        .no-plagiarism h2 {
+            color: var(--success);
+            margin-bottom: 1rem;
+        }
+        .download-report {
+            text-align: right;
+            margin: 2rem 0;
+        }
+        .download-btn {
+            background: var(--success);
+            color: white;
+            padding: 0.75rem 2rem;
+            border: none;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+            transition: all 0.2s;
+        }
+        .download-btn:hover {
+            background: #228b22;
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 1rem rgba(43,147,72,0.3);
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1>🔍 Image Plagiarism Scanner</h1>
+    
+    <div class="form-container">
+        <form method="post" enctype="multipart/form-data" class="custom-file-input">
+            <input type="file" name="file" id="file" accept="image/*,.pdf" required>
+            <label for="file" class="file-label">
+                📁 Choose File
+            </label>
+            <button type="submit" class="scan-btn">
+                🔍 Scan Now
+            </button>
+            <div class="loader"></div>
+<div class="overlay"></div>
+        </form>
+    </div>
+
+    {% if total %}
+<div class="download-report">
+    <button class="download-btn" onclick="generateReport()">
+        📄 Download Full Report (PDF)
+    </button>
+</div>
+
+
+    <div class="stats-card">
+        <div class="stat-box">
+            <div class="stat-icon">📑</div>
+            <div class="stat-value">{{ total }}</div>
+            <div class="stat-title">Total Images Analyzed</div>
+        </div>
+        <div class="stat-box danger">
+            <div class="stat-icon">❗</div>
+            <div class="stat-value">{{ plag_count }}</div>
+            <div class="stat-title">Potential Matches</div>
+        </div>
+        <div class="stat-box success">
+            <div class="stat-icon">✅</div>
+            <div class="stat-value">{{ total - plag_count }}</div>
+            <div class="stat-title">Unique Images</div>
+        </div>
+    </div>
+
+    {% if plag_count > 0 %}
+        {% for img in image_results if img.score >= 50 %}
+        <div class="result-card">
+            <div class="image-preview">
+                <img src="{{ img.path }}" alt="Scanned Image">
+                <span class="plagiarism-badge" >
+                    ⚠️ {{ img.score }}% Match
+                </span>
+            </div>
+            <ul class="source-list">
+                {% for d in img.details %}
+                <li class="source-item">
+                    <span class="match-type" style="color: var(--gray); font-size: 0.9em;">
+                        {% if d.ssim > d.orb %}Visual Match{% else %}Feature Match{% endif %}
+                    </span>
+                    <a href="{{ d.url }}" target="_blank">{{ d.url }}</a>
+                    <span style="color: var(--gray); font-size: 0.9em;">
+                        (SSIM: {{ d.ssim }} | ORB: {{ d.orb }})
+                    </span>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+        {% endfor %}
+    {% else %}
+    <div class="no-plagiarism">
+        <h2>🎉 No Plagiarism Detected!</h2>
+        <p>All images appear to be original content</p>
+    </div>
+    {% endif %}
+
+    <div class="progress-container">
+        <div class="progress-label">
+            <span>Overall Plagiarism Score</span>
+            <span style="color: #ef233c;">{{ overall_score }}%</span>
+            <span>Overall Originality Score</span>
+            <span>{{ 100 - overall_score }}% Unique</span>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill" style=" 
+                background: linear-gradient(90deg, 
+                    var(--success) 0%, 
+                    var(--warning) 50%, 
+                    var(--danger) 100%);">
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+<script>
+// Show loader during form submission
+document.querySelector('form').addEventListener('submit', function() {
+    document.querySelector('.loader').style.display = 'block';
+    document.querySelector('.overlay').style.display = 'block';
+});
+
+// Report generation handler
+async function generateReport() {
+    try {
+        document.querySelector('.loader').style.display = 'block';
+        document.querySelector('.overlay').style.display = 'block';
+        
+        // Properly escape JSON data
+        const results = JSON.parse('{{ image_results|tojson|safe }}');
+        
+        const response = await fetch('/generate-report', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                results: results
+            })
+        });
+
+        if (!response.ok) throw new Error('Network response was not ok');
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = 'plagiarism-report.pdf';
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Error generating report:', error);
+        alert('Failed to generate report: ' + error.message);
+    } finally {
+        document.querySelector('.loader').style.display = 'none';
+        document.querySelector('.overlay').style.display = 'none';
+    }
+}
+</script>
+</body>
+</html>
