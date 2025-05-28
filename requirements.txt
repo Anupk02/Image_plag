@@ -8,5 +8,4 @@ PyMuPDF
 gunicorn
 PyPDF2
 numpy
-fitz
 nltk
