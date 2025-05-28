@@ -339,7 +339,7 @@ def check_online():
     return jsonify(online_results)
 
 def extract_text_from_pdf(file_path):
-    """Extracts text from a PDF file."""
+
     try:
         reader = PdfReader(file_path)
         text = ''.join([page.extract_text() or '' for page in reader.pages])
@@ -347,5 +347,4 @@ def extract_text_from_pdf(file_path):
     except Exception as e:
         return ''
 
-if __name__ == '__main__':
-    app.run(debug=True)
+
