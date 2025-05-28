@@ -31,7 +31,8 @@ UPLOAD_FOLDER = os.path.join('static', 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
 GOOGLE_API_KEY = 'AIzaSyA5VzwiG_fLFhGKrrXxVrGm1o6BVXtgxyo'
 VISION_URL = f"https://vision.googleapis.com/v1/images:annotate?key={GOOGLE_API_KEY}"
-MAX_WORKERS = 2
+MAX_WORKERS = os.cpu_count() or 4
+executor = ThreadPoolExecutor(max_workers=MAX_WORKERS)
 BLACKLISTED_DOMAINS = {'landacbio.ipn.mx'}
 
 # --- App Setup ---
@@ -192,8 +193,8 @@ def index():
             logger.info(f"[Processing] {p}")
             urls = get_web_urls(p)
 
-            with ThreadPoolExecutor(MAX_WORKERS) as pool:
-                results = pool.map(lambda u: download_image(u), urls)
+            results = executor.map(download_image, urls)
+
 
             downloaded = [(pp, u) for pp, u in results if pp]
             s_list, o_list, details = [], [], []
