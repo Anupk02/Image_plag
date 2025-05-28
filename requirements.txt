@@ -6,3 +6,4 @@ reportlab
 scikit-image
 PyMuPDF
 opencv-python
+gunicorn
