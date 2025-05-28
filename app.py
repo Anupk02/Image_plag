@@ -75,7 +75,7 @@ def get_web_urls(image_path):
         items.extend(web.get('partialMatchingImages', []))
         items.extend(web.get('visuallySimilarImages', []))
         urls = [item.get('url') for item in items if item.get('url')]
-        top_urls = urls[:5]
+        top_urls = urls[:2]
         logger.info(f"[Vision API] Found {len(top_urls)} image URLs for {image_path}")
         return top_urls
     except Exception as e:
