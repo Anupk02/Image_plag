@@ -1412,43 +1412,7 @@ a:focus, button:focus {
                     </div>
                     
                     <!-- Results - Preserving original result display logic -->
-                    {% if plag_count > 0 %}
-        {% for img in image_results if img.score >= 50 %}
-        <div class="card bg-dark text-white border-warning mb-4">
-          <div class="row no-gutters">
-            <div class="col-md-5 p-3">
-              <img src="{{ img.path }}" class="img-fluid rounded" alt="Scanned Image">
-              <div class="badge badge-warning position-absolute" style="top: 10px; right: 15px;">
-                ⚠️ {{ img.score }}% Match
-              </div>
-            </div>
-            <div class="col-md-7 p-3">
-              <ul class="list-group list-group-flush">
-                {% for d in img.details %}
-                <li class="list-group-item bg-dark text-light">
-                  <small class="text-info">
-                    {% if d.ssim > d.orb %}Visual Match{% else %}Feature Match{% endif %}
-                  </small><br>
-                  <a href="{{ d.url }}" target="_blank" class="text-primary small d-block truncated-link" >
-                    {{ d.url }}
-                  </a>
-                  <small class="text-muted">(SSIM: {{ d.ssim }} | ORB: {{ d.orb }})</small>
-                </li>
-                {% endfor %}
-              </ul>
-            </div>
-          </div>
-        </div>
-        {% endfor %}
-      {% else %}
-        <div class="alert alert-success text-center">
-          <h4 class="alert-heading">🎉 No Plagiarism Detected!</h4>
-          <p>All images appear to be original content.</p>
-        </div>
-      {% endif %}
-
-      <!-- Progress Bars -->
- {% if plag_count > 0 %}
+  {% if plag_count > 0 %}
         {% for img in image_results if img.score >= 50 %}
         <div class="card bg-dark text-white border-warning mb-4">
           <div class="row no-gutters">
@@ -1503,12 +1467,6 @@ a:focus, button:focus {
                             <div class="text-3xl font-bold text-green-400">{{ (100 - overall_score)|round(1) }}%</div>
                         </div>
                     </div>
-
-    </div>
-  </div>
-</div>
-{% endif %}
-
 
     </div>
   </div>
