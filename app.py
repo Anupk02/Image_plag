@@ -1,5 +1,9 @@
 import os
 import cv2
+from flask import Flask, request, jsonify, render_template
+from werkzeug.utils import secure_filename
+from PyPDF2 import PdfReader
+from plagiarism_detector import check_plagiarism_online
 import base64
 import requests
 import logging
@@ -24,7 +28,7 @@ import fitz  # PyMuPDF
 # --- Config ---
 UPLOAD_FOLDER = os.path.join('static', 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
-GOOGLE_API_KEY = 'AIzaSyDVDzBhQrdy47pHIdBBI0-1Ui6OewxlASk'
+GOOGLE_API_KEY = 'AIzaSyA5VzwiG_fLFhGKrrXxVrGm1o6BVXtgxyo'
 VISION_URL = f"https://vision.googleapis.com/v1/images:annotate?key={GOOGLE_API_KEY}"
 MAX_WORKERS = os.cpu_count() or 4
 BLACKLISTED_DOMAINS = {'landacbio.ipn.mx'}
@@ -71,7 +75,7 @@ def get_web_urls(image_path):
         items.extend(web.get('partialMatchingImages', []))
         items.extend(web.get('visuallySimilarImages', []))
         urls = [item.get('url') for item in items if item.get('url')]
-        top_urls = urls[:8]
+        top_urls = urls[:5]
         logger.info(f"[Vision API] Found {len(top_urls)} image URLs for {image_path}")
         return top_urls
     except Exception as e:
@@ -300,7 +304,43 @@ def generate_report():
 
     finally:
         os.close(fd)
+UPLOAD_FOLDER = 'stored_pdfs'
+if not os.path.exists(UPLOAD_FOLDER):
+    os.makedirs(UPLOAD_FOLDER)
 
+@app.route('/')
+def home():
+    return render_template('index.html')
+
+
+
+@app.route('/check_online', methods=['POST'])
+def check_online():
+    """Performs online plagiarism detection."""
+    text = request.form.get('text', '')
+    upload_file = request.files.get('file')
+
+    # If a file is uploaded, extract text from the PDF
+    if upload_file:
+        filename = secure_filename(upload_file.filename)
+        upload_file.save(filename)  # Save temporarily
+        extracted_text = extract_text_from_pdf(filename)  #
+        os.remove(filename)  # Remove temporary file
+    else:
+        extracted_text = text 
+    # Check plagiarism using online sources
+    online_results = check_plagiarism_online(extracted_text)
+    online_results['extracted_text'] = extracted_text 
+    return jsonify(online_results)
+
+def extract_text_from_pdf(file_path):
+    """Extracts text from a PDF file."""
+    try:
+        reader = PdfReader(file_path)
+        text = ''.join([page.extract_text() or '' for page in reader.pages])
+        return text
+    except Exception as e:
+        return ''
 
 if __name__ == '__main__':
-    app.run(port=5001, threaded=True)
+    app.run(debug=True)
