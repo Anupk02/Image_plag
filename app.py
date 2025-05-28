@@ -6,6 +6,7 @@ from PyPDF2 import PdfReader
 from plagiarism_detector import check_plagiarism_online
 import base64
 import requests
+from uuid import uuid4
 import logging
 import tempfile
 from io import BytesIO
@@ -174,9 +175,12 @@ def index():
             return render_template('index.html', **context)
 
         os.makedirs(UPLOAD_FOLDER, exist_ok=True)
-        filename = sanitize_filename(file.filename)
+
+
+        filename = f"{uuid4().hex}_{secure_filename(file.filename)}"
         saved = os.path.join(UPLOAD_FOLDER, filename)
         file.save(saved)
+
 
         # <-- FIXED: use .endswith (lowercase) -->
         paths = extract_images_from_pdf(saved) if filename.lower().endswith('.pdf') else [saved]
