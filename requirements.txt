@@ -5,5 +5,8 @@ requests
 reportlab
 scikit-image
 PyMuPDF
-opencv-python
 gunicorn
+PyPDF2
+numpy
+fitz
+nltk
