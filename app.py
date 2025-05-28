@@ -30,7 +30,7 @@ UPLOAD_FOLDER = os.path.join('static', 'uploads')
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf'}
 GOOGLE_API_KEY = 'AIzaSyA5VzwiG_fLFhGKrrXxVrGm1o6BVXtgxyo'
 VISION_URL = f"https://vision.googleapis.com/v1/images:annotate?key={GOOGLE_API_KEY}"
-MAX_WORKERS = os.cpu_count() or 4
+MAX_WORKERS = 2
 BLACKLISTED_DOMAINS = {'landacbio.ipn.mx'}
 
 # --- App Setup ---
